@@ -1,0 +1,207 @@
+package test2;
+
+import javax.swing.*;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+public class CardManagement extends JFrame{
+  JLabel nameLabel,sexLabel,titleLabel,unitLabel;
+  JLabel addressLabel,telLabel1,telLabel2,mobileLabel,faxLabel,emailLabel;
+  JTextField nameTxt,unitTxt,addressTxt,telTxt1,telTxt2,mobileTxt,faxTxt,emailTxt;
+  JRadioButton sexBtn1,sexBtn2;
+  JComboBox titleBx;
+  String title[]={"无","总裁","总经理","经理","主任","处长","院长","校长","科长","教授","讲师"};
+  JButton addBtn,firstBtn,nextBtn;
+  JPanel centerPanel,sPanel;
+  GridBagLayout layout;
+  GridBagConstraints constraints;
+  
+  
+  RandomAccessFile file;
+  public CardManagement() {
+    super("名片管理");
+    try{
+      file=new RandomAccessFile("card.dat","rw");
+      //利用RandomAccessFile，以读写方式打开文件card.dat
+    }catch(IOException ex){
+      System.err.println(ex.getMessage());
+      System.exit(0);
+    }
+    
+    Container c=getContentPane();
+    c.setLayout(new BorderLayout());
+    layout=new GridBagLayout();
+    centerPanel=new JPanel(layout);
+    sPanel=new JPanel();
+    setComponent();//设置在centerPanel和sPanel的组件; 
+    c.add(centerPanel,BorderLayout.CENTER);
+    c.add(sPanel,BorderLayout.SOUTH);
+
+    pack();
+    setVisible(true);
+ }//构造方法
+  
+  public void setComponent(){//设计和设置GUI组件在容器
+  constraints=new GridBagConstraints();//创建网格包限制对象；
+  nameLabel=new JLabel("姓名");
+  nameTxt=new JTextField(10);
+  addComponent(nameLabel,0,0,1,1);
+  addComponent(nameTxt,0,1,1,2);
+
+  sexLabel=new JLabel("性别");
+  sexBtn1=new JRadioButton("男",false);
+  sexBtn2=new JRadioButton("女",true);
+  ButtonGroup group=new ButtonGroup();
+  group.add(sexBtn1);
+  group.add(sexBtn2);
+  addComponent(sexLabel,0,4,1,1);
+  addComponent(sexBtn1,0,5,1,1);
+  addComponent(sexBtn2,0,6,1,1);
+  
+  titleLabel=new JLabel("称谓");
+ 
+  titleBx=new JComboBox(title);
+  titleBx.setMaximumRowCount(5);
+  addComponent(titleLabel,0,7,1,1);
+  addComponent(titleBx,0,8,1,1);
+  
+  unitLabel=new JLabel("工作单位");
+  unitTxt=new JTextField(30);
+  addComponent(unitLabel,1,0,1,1);
+  addComponent(unitTxt,1,2,1,8);
+
+  addressLabel=new JLabel("工作地址");
+  addressTxt=new JTextField(30);
+  addComponent(addressLabel,2,0,1,1);
+  addComponent(addressTxt,2,2,1,8);
+
+  telLabel1=new JLabel("电话");
+  telTxt1=new JTextField(15);
+  addComponent(telLabel1,3,0,1,1);
+  addComponent(telTxt1,3,1,1,4);
+
+  telLabel2=new JLabel("电话");
+  telTxt2=new JTextField(15);
+  addComponent(telLabel2,3,5,1,1);
+  addComponent(telTxt2,3,6,1,4);
+
+  mobileLabel=new JLabel("手机");
+  mobileTxt=new JTextField(15);
+  addComponent(mobileLabel,4,0,1,1);
+  addComponent(mobileTxt,4,1,1,4);
+
+  faxLabel=new JLabel("传真");
+  faxTxt=new JTextField(15);
+  addComponent(faxLabel,4,5,1,1);
+  addComponent(faxTxt,4,6,1,4);
+
+  emailLabel=new JLabel("E-mail");
+  emailTxt=new JTextField(32);
+  addComponent(emailLabel,5,0,1,1);
+  addComponent(emailTxt,5,1,1,8);
+
+  addBtn=new JButton("添加记录");
+  firstBtn=new JButton("第一个");
+  nextBtn=new JButton("下一个");
+   addBtn.addActionListener(new addBtnListener());
+   firstBtn.addActionListener(new firstBtnBtnListener());
+   nextBtn.addActionListener(new nextBtnListener());
+   sPanel.add(firstBtn);
+   sPanel.add(nextBtn);
+  sPanel.add(addBtn);
+    }//end of 设置组件
+  
+void addComponent(Component component, int col, int row,int height,int width){
+//将组件component放置到行row列col，占据宽width高height的位置；
+   constraints.gridx=row;
+   constraints.gridy=col;
+  
+   constraints.gridwidth=width;
+   constraints.gridheight=height;
+  
+   constraints.fill=GridBagConstraints.BOTH;
+  
+   constraints.weightx=100;
+   constraints.weighty=200;
+  
+   layout.setConstraints(component,constraints);
+   centerPanel.add(component);
+ }
+
+  public void writeCard() throws IOException{//将记录写入文件；
+   file.seek(file.length());//指向文件的尾部
+   file.writeChars(nameTxt.getText()+"\n");
+   if(sexBtn1.isSelected())
+    file.writeInt(1);
+   else
+   file.writeInt(2);
+   file.writeInt(titleBx.getSelectedIndex());
+   file.writeChars(unitTxt.getText()+"\n");
+   file.writeChars(addressTxt.getText()+"\n");
+   file.writeChars(telTxt1.getText()+"\n");
+   file.writeChars(telTxt2.getText()+"\n");
+   file.writeChars(mobileTxt.getText()+"\n");
+   file.writeChars(faxTxt.getText()+"\n");
+   file.writeChars(emailTxt.getText()+"\n");
+   }//end of writeCard;
+  public void readCard(long position)throws IOException{
+	//读记录position所指的记录；
+	file.seek(position);//确定文件指针的位置
+	file.readUTF();
+	file.readInt();
+	file.readInt();
+	file.readUTF();
+	file.readUTF();
+	file.readUTF();
+	file.readUTF();
+	file.readUTF();
+	file.readUTF();
+	file.readUTF();
+	}
+  
+  class addBtnListener implements ActionListener{
+  public void actionPerformed(ActionEvent e){
+  
+    try{
+      if(e.getSource()==addBtn){
+      writeCard();
+       }
+    }catch(IOException ex){
+      System.err.println("写入/读取数据失败");
+  }
+  }
+  }
+    class nextBtnListener implements ActionListener{
+    	 public void actionPerformed(ActionEvent e)
+    
+    {
+    	try {
+        long currentPosition=file.getFilePointer();
+    	if(currentPosition<file.length())
+		
+				readCard(currentPosition);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    	}
+ 
+  }//end of actioniPerformed
+
+  class firstBtnBtnListener implements ActionListener{
+	  public void actionPerformed(ActionEvent e){
+
+  try {
+	
+	  readCard(0);
+} catch (IOException e1) {
+	// TODO Auto-generated catch block
+	e1.printStackTrace();
+}
+  }
+	  }
+  public static void main(String[] args) {
+    CardManagement card = new CardManagement();
+    card.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+  }//end of main
+}
